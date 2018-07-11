@@ -4,6 +4,7 @@ const controller = require('../conteudo/controller')
 
 router.get('/', controller.index)
 router.get('/searchAllCategoria/', controller.searchAllCategoria)
+router.get('/searchAllConteudo/', controller.searchAllConteudo)
 router.get('/searchConteudoById/:id', controller.searchConteudoById)
 router.post('/insertCategoria/', controller.insertCategoria)
 router.post('/insertConteudo/', controller.insertConteudo)
