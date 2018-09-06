@@ -29,7 +29,7 @@ app.use(function (req, res, next) {
   next()
 })
 
-app.use('/conteudo', require('./api/conteudo/router'))
+app.use('/content', require('./api/content/router'))
 
 app.set('json spaces', 4)
 
