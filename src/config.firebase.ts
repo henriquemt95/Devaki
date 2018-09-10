@@ -1,9 +1,15 @@
-import * as admin from 'firebase-admin'
-import serviceAccount from './config';
+import * as firebase from 'firebase'
+import * as firebaseui from 'firebaseui'
+import configFirebase from './config';
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
-  databaseURL: "https://devaki-wallet.firebaseio.com"
-});
+var config = {
+  apiKey: configFirebase.apiKey,
+  authDomain: configFirebase.authDomain,
+  databaseURL: configFirebase.databaseURL,
+  storageBucket: configFirebase.storageBucket,
+};
+const admin = firebase.initializeApp(config);
+
+
 
 export default admin;

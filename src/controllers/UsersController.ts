@@ -4,7 +4,8 @@ import { Request, Response } from 'express';
 import * as Model from '../model/UsersModel';
 import * as bcrypt from 'bcrypt-nodejs';
 import * as jwt from 'jsonwebtoken';
-import * as adminSDK from '../config.firebase';
+import adminSDK from '../config.firebase';
+
 
 
 
@@ -30,45 +31,35 @@ export const Login: Endpoint = {
 
     try {
 
-      let FindUser = await Model.FindUser({ user: request.body.user })
+      const email: string = request.body.email;
+      const password: string = request.body.password;
 
-      if (FindUser.length == 0) {
-        return response.status(401).json({
-          error: 'Incorrect username or password',
-          fail: true
-        })
-      }
+      const {user} = await adminSDK.auth().signInWithEmailAndPassword(email,password);
 
-
-      if (!bcrypt.compareSync(request.body.password, FindUser[0].password)) {
-        return response.status(401).json({
-          error: 'Incorrect username or password',
-          fail: true
-        })
-      }
-
-      if (!process.env.SECRET) {
-        return response.status(500).json({
+      if(!user) {
+        return response.status(422).json({
+          status: 422,
+          msgStatus: 'Invalid email or password!',
           fail: true,
-          error: 'SECRET DONT SET IN .ENV'
+          
         })
       }
 
-      if (request.body.tokenUser == FindUser[0].token) {
+      const token = await user.getIdToken();
 
-        let token = jwt.sign({ id: FindUser[0].id, user: FindUser[0].user }, process.env.SECRET, { expiresIn: '24h' })
-        return response.status(200).json({
-          token,
-          fail: false
-        })
-      }
+      return response.status(200).json({
+        status: 200,
+        msgStatus: 'Logged sucessfull',
+        token: token,
+      })           
+      
 
     } catch (errors) {
 
       console.log(errors)
       return response.status(500).json({
         status: 500,
-        msgStatus: 'Internal Server Error Users Service - Login',
+        msgStatus: errors,
         fail: true,
 
       })
@@ -101,45 +92,35 @@ export const LoginWithFacebook: Endpoint = {
 
     try {
 
-      let FindUser = await Model.FindUser({ user: request.body.user })
+      const email: string = request.body.email;
+      const password: string = request.body.password;
 
-      if (FindUser.length == 0) {
-        return response.status(401).json({
-          error: 'Incorrect username or password',
-          fail: true
-        })
-      }
+      const provider = new adminSDK.;
 
-
-      if (!bcrypt.compareSync(request.body.password, FindUser[0].password)) {
-        return response.status(401).json({
-          error: 'Incorrect username or password',
-          fail: true
-        })
-      }
-
-      if (!process.env.SECRET) {
-        return response.status(500).json({
+      if(!user) {
+        return response.status(422).json({
+          status: 422,
+          msgStatus: 'Invalid email or password!',
           fail: true,
-          error: 'SECRET DONT SET IN .ENV'
+          
         })
       }
 
-      if (request.body.tokenUser == FindUser[0].token) {
+      const token = await user.getIdToken();
 
-        let token = jwt.sign({ id: FindUser[0].id, user: FindUser[0].user }, process.env.SECRET, { expiresIn: '24h' })
-        return response.status(200).json({
-          token,
-          fail: false
-        })
-      }
+      return response.status(200).json({
+        status: 200,
+        msgStatus: 'Logged sucessfull',
+        token: token,
+      })           
+      
 
     } catch (errors) {
 
       console.log(errors)
       return response.status(500).json({
         status: 500,
-        msgStatus: 'Internal Server Error Users Service - Login',
+        msgStatus: errors,
         fail: true,
 
       })
