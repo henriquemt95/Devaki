@@ -1,9 +1,10 @@
 import { Endpoint } from "../typings/global";
 import { check, validationResult } from 'express-validator/check';
-import { Request, Response } from 'express'
+import { Request, Response } from 'express';
 import * as Model from '../model/UsersModel';
-import * as bcrypt from 'bcrypt-nodejs'
-import * as jwt from 'jsonwebtoken'
+import * as bcrypt from 'bcrypt-nodejs';
+import * as jwt from 'jsonwebtoken';
+import * as adminSDK from '../config.firebase';
 
 
 
@@ -21,6 +22,77 @@ export const Login: Endpoint = {
    * Handler Action GetAcessToken
    */
   handler: async function Login(request: Request, response: Response) {
+
+    const errors = validationResult(request);
+    if (!errors.isEmpty()) {
+      return response.status(422).json({ errors: errors.array() });
+    }
+
+    try {
+
+      let FindUser = await Model.FindUser({ user: request.body.user })
+
+      if (FindUser.length == 0) {
+        return response.status(401).json({
+          error: 'Incorrect username or password',
+          fail: true
+        })
+      }
+
+
+      if (!bcrypt.compareSync(request.body.password, FindUser[0].password)) {
+        return response.status(401).json({
+          error: 'Incorrect username or password',
+          fail: true
+        })
+      }
+
+      if (!process.env.SECRET) {
+        return response.status(500).json({
+          fail: true,
+          error: 'SECRET DONT SET IN .ENV'
+        })
+      }
+
+      if (request.body.tokenUser == FindUser[0].token) {
+
+        let token = jwt.sign({ id: FindUser[0].id, user: FindUser[0].user }, process.env.SECRET, { expiresIn: '24h' })
+        return response.status(200).json({
+          token,
+          fail: false
+        })
+      }
+
+    } catch (errors) {
+
+      console.log(errors)
+      return response.status(500).json({
+        status: 500,
+        msgStatus: 'Internal Server Error Users Service - Login',
+        fail: true,
+
+      })
+
+    }
+
+  }
+
+}
+
+export const LoginWithFacebook: Endpoint = {
+
+  /**
+   * Validate Data Request
+   */
+
+  validations: [
+    check('user').isLength({ min: 5 }),
+    check('password').isLength({ min: 1 }),
+  ],
+  /**
+   * Handler Action GetAcessToken
+   */
+  handler: async function LoginWithFacebook(request: Request, response: Response) {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
@@ -129,7 +201,7 @@ export const UserName: Endpoint = {
 
 }
 
-export const InsertUser: Endpoint = {
+export const UserRegister: Endpoint = {
   /**
    * Validate Data Request
    */
@@ -153,7 +225,7 @@ export const InsertUser: Endpoint = {
   /**
    * Handler Action GetAcessToken
    */
-  handler: async function InsertUser(request: Request, response: Response) {
+  handler: async function UserRegister(request: Request, response: Response) {
 
     const errors = validationResult(request);
     if (!errors.isEmpty()) {
